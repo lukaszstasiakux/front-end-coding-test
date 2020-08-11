@@ -10,3 +10,5 @@ To setup, in the project directory run:
 To run tests, in the project directory run:
 
 ### `npm test`
+
+Please do not (solely) use lodash satisfy the tests
