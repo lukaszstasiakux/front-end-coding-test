@@ -11,4 +11,4 @@ To run tests, in the project directory run:
 
 ### `npm test`
 
-Please do not use lodash in your solution to satisfy the tests.
+Please do not use any third party libraries in your solution to satisfy the tests.
