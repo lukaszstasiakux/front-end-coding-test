@@ -54,7 +54,60 @@ test('deserialize nested', () => {
     });
 });
 
-const getRandomChar = () => String.fromCharCode(97 + Math.floor(Math.random() * 25 + 1));
+test("deserialize nested deeper", () => {
+    expect(
+      deserialize({
+        row1_name: "baz",
+        row0_name: "foo",
+        row1_value: 6,
+        row0_value: 5,
+        row1_hits: {
+          hit0_time: "t:1527494940547",
+          hit1_time: "t:1527581340547",
+          hit3_name: "baz",
+          hit2_name: "foo",
+          hit3_value: 6,
+          hit2_value: 5,
+          hit3_hits: {
+            hit0_time: "t:1527494940547",
+            hit1_time: "t:1527581340547",
+          },
+        },
+        total: 2,
+      })
+    ).toEqual({
+      row: [
+        {
+          name: "foo",
+          value: 5,
+        },
+        {
+          name: "baz",
+          value: 6,
+          hits: {
+            hit: [
+              { time: "28/05/2018" },
+              { time: "29/05/2018" },
+              {
+                name: "foo",
+                value: 5,
+              },
+              {
+                name: "baz",
+                value: 6,
+                hits: {
+                  hit: [{ time: "28/05/2018" }, { time: "29/05/2018" }],
+                },
+              },
+            ],
+          },
+        },
+      ],
+      total: 2,
+    });
+  });
+  
+  const getRandomChar = () => String.fromCharCode(97 + Math.floor(Math.random() * 25 + 1));
 
 test('deserialize rows with any name pattern', () => {
     const rowName = `${getRandomChar()}${getRandomChar()}${getRandomChar()}${getRandomChar()}`;
