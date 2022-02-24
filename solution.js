@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+
 export const add = (...arg) => {
   return arg.reduce((total, current) => {
     return total + current;
@@ -45,19 +47,28 @@ export const timeFormatCheck = (value) => {
   if (typeof value === "string") {
     const tmp = value.split(":");
     if (tmp[1]) {
-      const date = new Date(parseInt(tmp[1]));
-      let mm = date.getMonth() + 1;
-      if (mm < 10) {
-        mm = "0" + mm;
-      }
-      return `${date.getDate()}/${mm}/${date.getFullYear()}`;
+      return format(new Date(parseInt(tmp[1])), "dd/MM/yyyy");
     }
   }
   return value;
 };
 
-export const deserialize = (obj) => {
+export const setValue = (value) => {
+  return typeof value !== "object"
+    ? timeFormatCheck(value)
+    : deserialize(value);
+};
+
+export const generateStructureObject = (filteredData, obj) => {
   const result = {};
+  filteredData.map((item) => {
+    const value = setValue(obj[item.originalName]);
+    result[item.label] = value;
+  });
+  return result;
+};
+
+export const setStructure = (obj) =>{
   const structure = [];
   const categories = [];
   Object.keys(obj).forEach((key) => {
@@ -67,32 +78,33 @@ export const deserialize = (obj) => {
       categories.push(decodedObj.category);
     }
   });
-  categories.map((category) => {
-    const filetedData = structure.filter((item) => item.category === category);
+  return {categories,structure};
+}
+
+export const getMaxIndex = (array)=>{
+  return Math.max.apply(Math, array.map(item =>  { return item.index; }))
+}
+
+export const deserialize = (obj) => {
+  const result = {};
+  const data = setStructure(obj)
+  data.categories.map((category) => {
+    const filetedData = data.structure.filter((item) => item.category === category);
     if (filetedData.length === 1) {
       result[category] = obj[filetedData[0].originalName];
     } else {
       result[category] = [];
-      let checker = true;
-      let i = 0;
-      while (checker) {
+      const maxIndex = getMaxIndex(filetedData)
+
+      for(let i=0; i <= maxIndex; i++){
         const categoryFilteredData = filetedData.filter(
           (item) => item.index === i
         );
-        if (categoryFilteredData.length === 0) {
-          checker = false;
-        } else {
-          const pushElement = {};
-          categoryFilteredData.map((subItem) => {
-            const value =
-              typeof obj[subItem.originalName] !== "object"
-                ? timeFormatCheck(obj[subItem.originalName])
-                : deserialize(obj[subItem.originalName]);
-            pushElement[subItem.label] = value;
-          });
-          result[category].push(pushElement);
-          i++;
-        }
+        const pushElement = generateStructureObject(
+          categoryFilteredData,
+          obj
+        );
+        result[category].push(pushElement);
       }
     }
   });
