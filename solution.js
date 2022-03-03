@@ -1,5 +1,3 @@
-import { format } from "date-fns";
-
 export const add = (...arg) => {
   return arg.reduce((total, current) => {
     return total + current;
@@ -47,7 +45,11 @@ export const timeFormatCheck = (value) => {
   if (typeof value === "string") {
     const tmp = value.split(":");
     if (tmp[1]) {
-      return format(new Date(parseInt(tmp[1])), "dd/MM/yyyy");
+      const date = new Date(parseInt(tmp[1]));
+      const day = date.getDate();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
     }
   }
   return value;
@@ -68,7 +70,7 @@ export const generateStructureObject = (filteredData, obj) => {
   return result;
 };
 
-export const setStructure = (obj) =>{
+export const setStructure = (obj) => {
   const structure = [];
   const categories = [];
   Object.keys(obj).forEach((key) => {
@@ -78,32 +80,36 @@ export const setStructure = (obj) =>{
       categories.push(decodedObj.category);
     }
   });
-  return {categories,structure};
-}
+  return { categories, structure };
+};
 
-export const getMaxIndex = (array)=>{
-  return Math.max.apply(Math, array.map(item =>  { return item.index; }))
-}
+export const getMaxIndex = (array) => {
+  return Math.max.apply(
+    Math,
+    array.map((item) => {
+      return item.index;
+    })
+  );
+};
 
 export const deserialize = (obj) => {
   const result = {};
-  const data = setStructure(obj)
+  const data = setStructure(obj);
   data.categories.map((category) => {
-    const filetedData = data.structure.filter((item) => item.category === category);
+    const filetedData = data.structure.filter(
+      (item) => item.category === category
+    );
     if (filetedData.length === 1) {
       result[category] = obj[filetedData[0].originalName];
     } else {
       result[category] = [];
-      const maxIndex = getMaxIndex(filetedData)
+      const maxIndex = getMaxIndex(filetedData);
 
-      for(let i=0; i <= maxIndex; i++){
+      for (let i = 0; i <= maxIndex; i++) {
         const categoryFilteredData = filetedData.filter(
           (item) => item.index === i
         );
-        const pushElement = generateStructureObject(
-          categoryFilteredData,
-          obj
-        );
+        const pushElement = generateStructureObject(categoryFilteredData, obj);
         result[category].push(pushElement);
       }
     }
